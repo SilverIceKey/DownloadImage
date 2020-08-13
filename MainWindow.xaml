@@ -3,18 +3,32 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DownloadImage"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-     TextElement.FontWeight="Regular"
-     TextElement.FontSize="13"
-     TextOptions.TextFormattingMode="Ideal"
-     TextOptions.TextRenderingMode="Auto"
-     Background="{DynamicResource MaterialDesignPaper}"
-     FontFamily="{DynamicResource MaterialDesignFont}">
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1100"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
     <Grid>
-
+        <materialDesign:ColorZone
+  Mode="Custom"
+            Background="CornflowerBlue"
+            Foreground="White"
+  Padding="16">
+            <StackPanel
+    Orientation="Horizontal">
+                <ToggleButton
+      Style="{DynamicResource MaterialDesignHamburgerToggleButton}" />
+                <TextBlock
+      VerticalAlignment="Center"
+      Margin="16 0 0 0">
+    下载工具
+                </TextBlock>
+            </StackPanel>
+        </materialDesign:ColorZone>
     </Grid>
 </Window>
