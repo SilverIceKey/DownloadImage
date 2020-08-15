@@ -1,0 +1,121 @@
+﻿<Page x:Class="DownloadImage.domain.BookDownload"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:DownloadImage.domain"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      mc:Ignorable="d"
+      d:DesignHeight="800" d:DesignWidth="800"
+      Background="White"
+      Title="BookDownload"
+      d:DataContext="{d:DesignInstance local:ComicModel}">
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <DockPanel VerticalAlignment="Top">
+                <TextBlock Style="{StaticResource MaterialDesignBody2TextBlock}" Text="下载路径："
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="DownloadPath" Style="{StaticResource MaterialDesignBody2TextBlock}"
+                           VerticalAlignment="Center" />
+                <Button
+                    x:Name="SelectDownloadPath"
+                    Click="SelectDownloadPath_OnClick"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    HorizontalAlignment="Right"
+                    Margin="50,0,10,0"
+                    MinHeight="20"
+                    MinWidth="100">
+                    选择下载路径
+                </Button>
+            </DockPanel>
+        </Grid>
+        <Grid Margin="0,10,0,10" Grid.Row="1">
+            <DockPanel VerticalAlignment="Top">
+                <TextBlock Style="{StaticResource MaterialDesignBody2TextBlock}" Text="Excel路径："
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="ExcelPathName" Style="{StaticResource MaterialDesignBody2TextBlock}"
+                           VerticalAlignment="Center" />
+                <Button
+                    x:Name="SelectExcel"
+                    Click="SelectExcel_OnClick"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    HorizontalAlignment="Right"
+                    Margin="50,0,10,0"
+                    MinHeight="20"
+                    MinWidth="100">
+                    选择Excel文件
+                </Button>
+            </DockPanel>
+        </Grid>
+        <Grid Grid.Row="2" Height="700">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="8*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" x:Name="HumidifyEventLogCol0" VerticalAlignment="Center" />
+                <Grid Grid.Column="1" x:Name="HumidifyEventLogCol1" VerticalAlignment="Center" />
+                <Grid Grid.Column="2" x:Name="HumidifyEventLogCol2" VerticalAlignment="Center" />
+                <Grid Grid.Column="3" x:Name="HumidifyEventLogCol3" VerticalAlignment="Center" />
+                <Grid Grid.Column="4" x:Name="HumidifyEventLogCol4" VerticalAlignment="Center" />
+            </Grid>
+
+            <StackPanel x:Name="StackPanel" VerticalAlignment="Center" Visibility="Hidden">
+                <ProgressBar
+                    Style="{DynamicResource MaterialDesignCircularProgressBar}"
+                    HorizontalAlignment="Center"
+                    Margin="16"
+                    IsIndeterminate="True"
+                    Value="0" />
+                <TextBlock
+                    Style="{StaticResource MaterialDesignBody2TextBlock}"
+                    HorizontalAlignment="Center">
+                    加载中
+                </TextBlock>
+            </StackPanel>
+            <ListView x:Name="ListView">
+                <ListView.View>
+                    <GridView x:Name="ExcelGridView">
+                        <GridViewColumn Width="{Binding ElementName=HumidifyEventLogCol0,Path=ActualWidth}"
+                                        DisplayMemberBinding="{Binding ComicUrl}"
+                                        Header="漫画链接" />
+                        <GridViewColumn Width="{Binding ElementName=HumidifyEventLogCol1,Path=ActualWidth}"
+                                        DisplayMemberBinding="{Binding ComicName}"
+                                        Header="漫画名字" />
+                        <GridViewColumn Width="{Binding ElementName=HumidifyEventLogCol2,Path=ActualWidth}"
+                                        DisplayMemberBinding="{Binding ComicPage}"
+                                        Header="漫画页数" />
+                        <GridViewColumn Width="{Binding ElementName=HumidifyEventLogCol3,Path=ActualWidth}"
+                                        DisplayMemberBinding="{Binding CurDownloadPage}"
+                                        Header="当前下载页数" />
+                        <GridViewColumn Width="{Binding ElementName=HumidifyEventLogCol4,Path=ActualWidth}"
+                                        DisplayMemberBinding="{Binding DownloadStatus}"
+                                        Header="下载状态" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+        <Grid Margin="0,10,0,10" Grid.Row="3" VerticalAlignment="Bottom">
+            <Button
+                x:Name="StartDownload"
+                Click="StartDownload_OnClick"
+                Style="{StaticResource MaterialDesignRaisedButton}"
+                HorizontalAlignment="Right"
+                Margin="50,0,10,0"
+                MinHeight="20"
+                MinWidth="100">
+                <TextBlock x:Name="StartDownloadText" Text="开始下载" />
+            </Button>
+        </Grid>
+    </Grid>
+</Page>
