@@ -25,7 +25,7 @@ namespace DownloadImage.domain
     {
         private string BookDownloadPath;
         private string ExcelPath;
-        public List<ComicModel> XlsData;
+        public List<ComicModel> XlsData = new List<ComicModel>();
         private FileStream fs = null;
         private IWorkbook workbook = null;
         private IniUtils configUtils = new IniUtils(AppDomain.CurrentDomain.BaseDirectory+"config.ini");
@@ -180,9 +180,11 @@ namespace DownloadImage.domain
                     string[] paths = File.ReadAllLines(ExcelPath, Encoding.Default);
                     for (int i = 0; i < paths.Length; i++)
                     {
+                        Int64 startTime = TimeUtils.GetTimeStamp();
                         ComicModel comicModel = new ComicModel();
                         string ComicUrl = paths[i];
                         HtmlDocument document = new HtmlDocument();
+                        LogOutWrite("漫画信息", "链接：" + ComicUrl + " 解析开始");
                         string html = HttpRequestHelper.HttpGet(ComicUrl, "");
                         if (ComicUrl.StartsWith("https://zh.nyahentai.fun/"))
                         {
@@ -204,6 +206,7 @@ namespace DownloadImage.domain
                         }
                         comicModel.IsDownload = comicModel.ComicPage == comicModel.CurDownloadPage;
                         comicModel.DownloadStatus = "未开始";
+                        LogOutWrite("漫画信息", "链接：" + ComicUrl + " 漫画名称：" + comicModel.ComicName + " 漫画页码：" + comicModel.ComicPage+1 + " 解析时间：" + (TimeUtils.GetTimeStamp() - startTime) + "ms");
                         datas.Add(comicModel);
                     }
                 }
@@ -221,18 +224,20 @@ namespace DownloadImage.domain
                             int cellCount = firstRow.LastCellNum; //一行最后一个cell的编号，即总的列数
                             for (int j = 0; j < cellCount; j++)
                             {
+                                long startTime = TimeUtils.GetTimeStamp();
                                 ComicModel comicModel = new ComicModel();
                                 string ComicUrl = firstRow.Cells[j].ToString();
                                 HtmlDocument document = new HtmlDocument();
+                                LogOutWrite("漫画信息", "链接：" + ComicUrl + " 解析开始");
                                 if (ComicUrl.StartsWith("https://zh.nyahentai.fun/"))
                                 {
                                     ComicUrl = ComicUrl + "list/1/";
                                 }
-
                                 document.LoadHtml(HttpRequestHelper.HttpGet(ComicUrl, ""));
                                 comicModel.ComicName = getTitle(ComicUrl);
                                 comicModel.ComicUrl = ComicUrl;
                                 comicModel.ComicPage = getComicPage(ComicUrl, document);
+                                LogOutWrite("漫画信息", "链接："+ ComicUrl+" 漫画名称："+comicModel.ComicName +" 漫画页码："+ comicModel.ComicPage + " 解析时间：" + (TimeUtils.GetTimeStamp() - startTime) + "ms");
                                 comicModel.ComicPageUrl = getComicPageUrl(ComicUrl, document);
                                 int curdownloadpage = 0;
                                 if (string.IsNullOrEmpty(downloadUtils.IniReadvalue(comicModel.ComicUrl, "curDownloadPage")))
@@ -286,7 +291,14 @@ namespace DownloadImage.domain
             SelectExcel.IsEnabled = false;
         }
 
-        private int downloadThreadNum = 4;
+        private void LogOutWrite(string tag,string log)
+        {
+            this.Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
+            {
+                LogOut.Text += tag + ":" + log + "\r\n";
+                LogLayout.ScrollToBottom();
+            });
+        }
 
         private void downloadBook()
         {
@@ -333,21 +345,23 @@ namespace DownloadImage.domain
 
         private void ThreadDownload(object comicModel)
         {
+            ComicModel downloadModel = (ComicModel)comicModel;
             try
             {
-                ComicModel downloadModel = (ComicModel)comicModel;
                 while (!downloadModel.IsDownload)
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
                         cancellationToken.Token.ThrowIfCancellationRequested();
                     }
+                    LogOutWrite("下载信息", "链接：" + downloadModel.ComicPageUrl[downloadModel.CurDownloadPage] + " 漫画名称：" + downloadModel.ComicName + " 当前页码：" + (downloadModel.CurDownloadPage+1));
                     HttpRequestHelper.ImgSave(downloadModel.ComicPageUrl[downloadModel.CurDownloadPage],
                         BookDownloadPath, downloadModel);
                 }
             }
             catch (Exception e)
             {
+                LogOutWrite("漫画信息", "链接：" + downloadModel.ComicPageUrl[downloadModel.CurDownloadPage] + " 漫画名称：" + downloadModel.ComicName + " 错误信息：" + e.Message);
                 Console.WriteLine(e.Message);
             }
             

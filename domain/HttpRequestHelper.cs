@@ -28,6 +28,7 @@ namespace DownloadImage.domain
                 request.Method = "POST";
                 request.ContentType = "application/json";
                 request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
+                request.ServicePoint.Expect100Continue = false;
                 //request.CookieContainer = cookie;
                 Stream myRequestStream = request.GetRequestStream();
                 StreamWriter myStreamWriter = new StreamWriter(myRequestStream, Encoding.GetEncoding("gb2312"));
@@ -57,15 +58,18 @@ namespace DownloadImage.domain
         {
             HttpWebRequest request =
                 (HttpWebRequest) WebRequest.Create(Url + (postDataStr == "" ? "" : "?") + postDataStr);
+            request.Proxy = null;
             request.Method = "GET";
             request.ContentType = "application/json";
-
+            request.ServicePoint.Expect100Continue = false;
             HttpWebResponse response = (HttpWebResponse) request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
             StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
             string retString = myStreamReader.ReadToEnd();
             myStreamReader.Close();
             myResponseStream.Close();
+            response.Close();
+            request.Abort();
 
             return retString;
         }
@@ -251,13 +255,13 @@ namespace DownloadImage.domain
             if (path.Equals(""))
                 throw new Exception("未指定保存文件的路径");
             string imgName = imgUrl.ToString().Substring(imgUrl.ToString().LastIndexOf("/") + 1);
-            string defaultType = ".jpg";
-            string[] imgTypes = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
             string imgPath = "";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(imgUrl);
+            request.Proxy = null;
             request.UserAgent = "Mozilla/6.0 (MSIE 6.0; Windows NT 5.1; Natas.Robot)";
             request.Timeout = 3000;
+            request.ServicePoint.Expect100Continue = false;
 
             WebResponse response = request.GetResponse();
             Stream stream = response.GetResponseStream();
@@ -282,6 +286,7 @@ namespace DownloadImage.domain
                 fso.Close();
                 stream.Close();
                 response.Close();
+                request.Abort();
                 return imgPath;
             }
             else

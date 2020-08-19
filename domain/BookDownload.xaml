@@ -17,6 +17,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <DockPanel VerticalAlignment="Top">
@@ -38,7 +39,7 @@
         </Grid>
         <Grid Margin="0,10,0,10" Grid.Row="1">
             <DockPanel VerticalAlignment="Top">
-                <TextBlock Style="{StaticResource MaterialDesignBody2TextBlock}" Text="Excel路径："
+                <TextBlock Style="{StaticResource MaterialDesignBody2TextBlock}" Text="列表路径："
                            VerticalAlignment="Center" />
                 <TextBlock x:Name="ExcelPathName" Style="{StaticResource MaterialDesignBody2TextBlock}"
                            VerticalAlignment="Center" />
@@ -50,18 +51,18 @@
                     Margin="50,0,10,0"
                     MinHeight="20"
                     MinWidth="100">
-                    选择Excel文件
+                    选择列表文件
                 </Button>
             </DockPanel>
         </Grid>
-        <Grid Grid.Row="2" Height="700">
+        <Grid Grid.Row="2" Height="400">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="8*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0" x:Name="HumidifyEventLogCol0" VerticalAlignment="Center" />
                 <Grid Grid.Column="1" x:Name="HumidifyEventLogCol1" VerticalAlignment="Center" />
@@ -105,7 +106,24 @@
                 </ListView.View>
             </ListView>
         </Grid>
-        <Grid Margin="0,10,0,10" Grid.Row="3" VerticalAlignment="Bottom">
+        <Grid Margin="0,10,0,10" Grid.Row="3" VerticalAlignment="Bottom" Height="280">
+            <TextBlock
+                Style="{StaticResource MaterialDesignBody2TextBlock}"
+                Height="20"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left">
+                日志
+            </TextBlock>
+            <ScrollViewer x:Name="LogLayout" Height="240" Margin="0,25,0,5" VerticalAlignment="Top" MaxHeight="240">
+                <TextBlock
+                    Style="{StaticResource MaterialDesignBody2TextBlock}"
+                    Height="auto"
+                    x:Name="LogOut"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"/>
+            </ScrollViewer>
+        </Grid>
+        <Grid Margin="0,10,0,10" Grid.Row="4" VerticalAlignment="Bottom">
             <Button
                 x:Name="StartDownload"
                 Click="StartDownload_OnClick"

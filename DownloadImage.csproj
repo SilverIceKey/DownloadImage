@@ -139,6 +139,7 @@
       <DependentUpon>ImageDownload.xaml</DependentUpon>
     </Compile>
     <Compile Include="domain\IniUtils.cs" />
+    <Compile Include="domain\TimeUtils.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
