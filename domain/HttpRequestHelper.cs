@@ -24,7 +24,7 @@ namespace DownloadImage.domain
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(Url);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
                 request.Method = "POST";
                 request.ContentType = "application/json";
                 request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
@@ -35,7 +35,7 @@ namespace DownloadImage.domain
                 myStreamWriter.Write(postDataStr);
                 myStreamWriter.Close();
 
-                HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
                 //response.Cookies = cookie.GetCookies(response.ResponseUri);
                 Stream myResponseStream = response.GetResponseStream();
@@ -57,12 +57,12 @@ namespace DownloadImage.domain
         public static string HttpGet(string Url, string postDataStr)
         {
             HttpWebRequest request =
-                (HttpWebRequest) WebRequest.Create(Url + (postDataStr == "" ? "" : "?") + postDataStr);
+                (HttpWebRequest)WebRequest.Create(Url + (postDataStr == "" ? "" : "?") + postDataStr);
             request.Proxy = null;
             request.Method = "GET";
             request.ContentType = "application/json";
             request.ServicePoint.Expect100Continue = false;
-            HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
             StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
             string retString = myStreamReader.ReadToEnd();
@@ -195,7 +195,7 @@ namespace DownloadImage.domain
         /// 图片另存为
         /// </summary>
         /// <param name="url">路径</param>
-        public static void ImgSave(string url, string path, ComicModel comicModel)
+        public static void ImgSave(string url, string path, ComicModel comicModel, DownloadCallback callback)
         {
             try
             {
@@ -209,7 +209,7 @@ namespace DownloadImage.domain
                 {
                     comicName = comicName.Replace(chars[i].ToString(), "");
                 }
-                string direrory = (path + "\\" + comicName + "\\").Replace("  ","").Trim();
+                string direrory = (path + "\\" + comicName + "\\").Replace("  ", "").Trim();
                 if (!Directory.Exists(direrory))
                 {
                     Directory.CreateDirectory(direrory);
@@ -217,10 +217,12 @@ namespace DownloadImage.domain
                 string fileName = url.Substring(url.LastIndexOf("/") + 1) + "";
                 SaveImageFromWeb(url, direrory, fileName);
                 comicModel.CurDownloadPage += 1;
+                callback.onPageSuccess();
                 if (comicModel.CurDownloadPage == comicModel.ComicPage)
                 {
                     comicModel.IsDownload = true;
                     comicModel.DownloadStatus = "下载完成";
+                    callback.onSuccess(comicModel);
                 }
             }
             catch (Exception e)
@@ -230,13 +232,13 @@ namespace DownloadImage.domain
                 {
                     if (url.EndsWith(".jpg"))
                     {
-                        ImgSave(url.Replace(".jpg", ".png"), path, comicModel);
+                        ImgSave(url.Replace(".jpg", ".png"), path, comicModel, callback);
                     }
                     else
                     {
-                        ImgSave(url.Replace(".png", ".jpg"), path, comicModel);
+                        ImgSave(url.Replace(".png", ".jpg"), path, comicModel, callback);
                     }
-                    
+
                 }
                 // MessageBox.Show(e.Message);
                 // ImgSave(url,path,comicModel);

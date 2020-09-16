@@ -84,7 +84,7 @@
                     加载中
                 </TextBlock>
             </StackPanel>
-            <ListView x:Name="ListView">
+            <ListView x:Name="ListView" AllowDrop="True" Drop="ListView_OnDrop">
                 <ListView.View>
                     <GridView x:Name="ExcelGridView">
                         <GridViewColumn Width="{Binding ElementName=HumidifyEventLogCol0,Path=ActualWidth}"

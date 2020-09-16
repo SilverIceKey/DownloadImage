@@ -134,6 +134,7 @@
     </Compile>
     <Compile Include="domain\BookDownloadRule.cs" />
     <Compile Include="domain\ComicModel.cs" />
+    <Compile Include="domain\DownloadCallback.cs" />
     <Compile Include="domain\HttpRequestHelper.cs" />
     <Compile Include="domain\ImageDownload.xaml.cs">
       <DependentUpon>ImageDownload.xaml</DependentUpon>
