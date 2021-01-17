@@ -29,6 +29,10 @@ namespace DownloadImage.domain
                 request.ContentType = "application/json";
                 request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
                 request.ServicePoint.Expect100Continue = false;
+                request.UserAgent =
+                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; Maxthon; .NET CLR 1.1.4322)";
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)192 | (SecurityProtocolType)768 | (SecurityProtocolType)3072;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 //request.CookieContainer = cookie;
                 Stream myRequestStream = request.GetRequestStream();
                 StreamWriter myStreamWriter = new StreamWriter(myRequestStream, Encoding.GetEncoding("gb2312"));
@@ -289,10 +293,12 @@ namespace DownloadImage.domain
                 stream.Close();
                 response.Close();
                 request.Abort();
+                GC.Collect();
                 return imgPath;
             }
             else
             {
+                GC.Collect();
                 return "";
             }
         }

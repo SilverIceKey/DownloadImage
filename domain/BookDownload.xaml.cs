@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -40,8 +42,18 @@ namespace DownloadImage.domain
             if (!string.IsNullOrEmpty(configUtils.IniReadvalue("DownloadPath", "Path")))
             {
                 BookDownloadPath = configUtils.IniReadvalue("DownloadPath", "Path");
-                DownloadPath.Text = configUtils.IniReadvalue("DownloadPath", "Path");
+                DownloadPath.Text = configUtils.IniReadvalue("DownloadPath", "Path"); 
+                if (!new DirectoryInfo(BookDownloadPath).Exists)
+                {
+                    SelectDownloadPath_OnClick(null, null);
+                }
             }
+            else
+            { 
+                SelectDownloadPath_OnClick(null, null);
+            }
+
+            
         }
 
         private void SelectDownloadPath_OnClick(object sender, RoutedEventArgs e)
@@ -102,7 +114,7 @@ namespace DownloadImage.domain
             {
                 HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(html);
-                HtmlNode htmlNode = document.DocumentNode.SelectSingleNode("//span[@class='pretty']");
+                HtmlNode htmlNode = document.DocumentNode.SelectSingleNode("//div[@id='info']/h2/span[@class='pretty']");
                 title = htmlNode.InnerText;
                 Regex regex = new Regex(@"\(C\d{2,4}\)");
                 Regex regex2 = new Regex(@"\(COMIC\d{0,2}\W{0,1}\d{0,4}\)");
@@ -117,7 +129,12 @@ namespace DownloadImage.domain
                     title = title.Replace(Result, "");
                 }
             }
-
+            char[] chars = Path.GetInvalidFileNameChars();
+            for (int i = 0; i < chars.Length; i++)
+            {
+                title = title.Replace(chars[i].ToString(), "");
+            }
+            title = title.Replace("  ", "");
             return title.Trim();
         }
 
@@ -159,7 +176,7 @@ namespace DownloadImage.domain
                 HtmlNode htmlNode = document.DocumentNode.SelectSingleNode("//div[@class='thumbs']");
                 int PageNum = htmlNode.ChildNodes.Count;
                 HtmlDocument srcDocument = new HtmlDocument();
-                srcDocument.LoadHtml(HttpRequestHelper.HttpGet(url + "1/", ""));
+                srcDocument.LoadHtml(HttpRequestHelper.HttpGet((url.EndsWith("/")?url:(url+"/")) + "1/", ""));
                 HtmlNode srcNode = srcDocument.DocumentNode.SelectSingleNode("//section[@id='image-container']/a/img");
                 string srcUrl = srcNode.Attributes["src"].Value;
                 string ext = srcUrl.Substring(srcUrl.LastIndexOf(".") + 1);
@@ -176,6 +193,12 @@ namespace DownloadImage.domain
         {
             try
             {
+                this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
+               {
+                   StartDownload.IsEnabled = false;
+                   SelectDownloadPath.IsEnabled = false;
+                   SelectExcel.IsEnabled = false;
+               });
                 List<ComicModel> datas = new List<ComicModel>();
                 if (ExcelPath.EndsWith(".txt"))
                 {
@@ -198,17 +221,10 @@ namespace DownloadImage.domain
                         comicModel.ComicUrl = ComicUrl;
                         comicModel.ComicPage = getComicPage(ComicUrl, document);
                         comicModel.ComicPageUrl = getComicPageUrl(ComicUrl, document);
-                        if (string.IsNullOrEmpty(downloadUtils.IniReadvalue(comicModel.ComicUrl, "curDownloadPage")))
-                        {
-                            comicModel.CurDownloadPage = 0;
-                        }
-                        else
-                        {
-                            comicModel.CurDownloadPage = Int32.Parse(downloadUtils.IniReadvalue(comicModel.ComicUrl, "curDownloadPage"));
-                        }
+                        comicModel.CurDownloadPage = getCurrentDownloadPages(BookDownloadPath, comicModel.ComicName);
                         comicModel.IsDownload = comicModel.ComicPage == comicModel.CurDownloadPage;
-                        comicModel.DownloadStatus = "未开始";
-                        LogOutWrite("漫画信息", "链接：" + ComicUrl + " 漫画名称：" + comicModel.ComicName + " 漫画页码：" + (comicModel.ComicPage + 1) + " 解析时间：" + (TimeUtils.GetTimeStamp() - startTime) + "ms");
+                        comicModel.DownloadStatus = comicModel.ComicPage == comicModel.CurDownloadPage ? "下载完成" : "未开始";
+                        LogOutWrite("漫画信息", "链接：" + ComicUrl + " 漫画名称：" + comicModel.ComicName + " 漫画页码：" + comicModel.ComicPage + " 解析时间：" + (TimeUtils.GetTimeStamp() - startTime) + "ms");
                         datas.Add(comicModel);
                     }
                 }
@@ -239,17 +255,9 @@ namespace DownloadImage.domain
                                 comicModel.ComicName = getTitle(ComicUrl);
                                 comicModel.ComicUrl = ComicUrl;
                                 comicModel.ComicPage = getComicPage(ComicUrl, document);
-                                LogOutWrite("漫画信息", "链接：" + ComicUrl + " 漫画名称：" + comicModel.ComicName + " 漫画页码：" + (comicModel.ComicPage + 1) + " 解析时间：" + (TimeUtils.GetTimeStamp() - startTime) + "ms");
+                                LogOutWrite("漫画信息", "链接：" + ComicUrl + " 漫画名称：" + comicModel.ComicName + " 漫画页码：" + comicModel.ComicPage + " 解析时间：" + (TimeUtils.GetTimeStamp() - startTime) + "ms");
                                 comicModel.ComicPageUrl = getComicPageUrl(ComicUrl, document);
-                                int curdownloadpage = 0;
-                                if (string.IsNullOrEmpty(downloadUtils.IniReadvalue(comicModel.ComicUrl, "curDownloadPage")))
-                                {
-                                    comicModel.CurDownloadPage = 0;
-                                }
-                                else
-                                {
-                                    comicModel.CurDownloadPage = Int32.Parse(downloadUtils.IniReadvalue(comicModel.ComicUrl, "curDownloadPage"));
-                                }
+                                comicModel.CurDownloadPage = getCurrentDownloadPages(BookDownloadPath, comicModel.ComicName);
                                 comicModel.IsDownload = comicModel.ComicPage == comicModel.CurDownloadPage;
                                 comicModel.DownloadStatus = comicModel.ComicPage == comicModel.CurDownloadPage ? "下载完成" : "未开始";
                                 datas.Add(comicModel);
@@ -262,12 +270,55 @@ namespace DownloadImage.domain
                     ListView.ItemsSource = datas;
                     XlsData = datas;
                     StackPanel.Visibility = Visibility.Hidden;
+                    StartDownload.IsEnabled = true;
+                    SelectDownloadPath.IsEnabled = true;
+                    SelectExcel.IsEnabled = true;
+                    if (isAllDownload())
+                    {
+                        MessageBox.Show("已经全部下载完成");
+                        StartDownloadText.Text = "已完成";
+                        StartDownload.IsEnabled = false;
+                        SelectDownloadPath.IsEnabled = true;
+                        SelectExcel.IsEnabled = true;
+                    }
                 });
+
             }
             catch (Exception ex) //打印错误信息
             {
-                MessageBox.Show(ex.Message);
+                this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
+               {
+                   MessageBox.Show(ex.Message);
+                   checkData();
+                   StartDownload.IsEnabled = false;
+                   SelectDownloadPath.IsEnabled = true;
+                   SelectExcel.IsEnabled = true;
+               });
             }
+        }
+
+        public int getCurrentDownloadPages(string path,string comicName)
+        {
+            DirectoryInfo[] directoryInfos = new DirectoryInfo(path).GetDirectories();
+            int CurrentDownloadPages = 0;
+            foreach (var directoryInfo in directoryInfos)
+            {
+                if (directoryInfo.GetDirectories().Length!=0)
+                {
+                    CurrentDownloadPages = getCurrentDownloadPages(directoryInfo.FullName, comicName);
+                    if (CurrentDownloadPages != 0)
+                    {
+                        return CurrentDownloadPages;
+                    }
+                }
+                //LogOutWrite("目录与漫画名字", directoryInfo.Name+":"+ comicName);
+                if (directoryInfo.Name==comicName)
+                {
+                    return directoryInfo.GetFiles().Length;
+                }
+            }
+
+            return CurrentDownloadPages;
         }
 
         private void StartDownload_OnClick(object sender, RoutedEventArgs e)
@@ -315,12 +366,19 @@ namespace DownloadImage.domain
             //     }
             // }
 
-            while (!isAllDownload())
+            while (!isAllDownload()&& CurrentBook < XlsData.Count)
             {
                 if (!XlsData[CurrentBook].IsDownload && "未开始".Equals(XlsData[CurrentBook].DownloadStatus))
                 {
                     CancellationToken token = cancellationToken.Token;
-                    ThreadPool.QueueUserWorkItem(o => ThreadDownload(token, XlsData[CurrentBook]));
+                    try
+                    {
+                        ThreadPool.QueueUserWorkItem(o => ThreadDownload(token, XlsData[CurrentBook]));
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
                 }
             }
 
@@ -332,7 +390,7 @@ namespace DownloadImage.domain
                 }
                 MessageBox.Show("下载完成");
                 StartDownloadText.Text = "下载完成";
-                StartDownload.IsEnabled = true;
+                StartDownload.IsEnabled = false;
                 SelectDownloadPath.IsEnabled = true;
                 SelectExcel.IsEnabled = true;
             });
@@ -394,8 +452,11 @@ namespace DownloadImage.domain
 
         public void onSuccess(ComicModel comicModel)
         {
-            CurrentBook++;
-            LogOutWrite("下载信息", "链接：" + comicModel.ComicPageUrl[comicModel.CurDownloadPage] + " 漫画名称：" + comicModel.ComicName + " 当前页码：" + (comicModel.CurDownloadPage + 1));
+            if (CurrentBook < XlsData.Count - 1)
+            {
+                CurrentBook++;
+            }
+            LogOutWrite("下载信息", "链接：" + comicModel.ComicPageUrl[comicModel.CurDownloadPage] + " 漫画名称：" + comicModel.ComicName + " 下载完成");
         }
 
         public void onDownloadError(Exception exception)
@@ -405,12 +466,19 @@ namespace DownloadImage.domain
 
         private void OnDispatcherShutdownStarted(object sender, EventArgs e)
         {
-            checkThread.Abort();
-            cancellationToken.Cancel();
-            for (int i = 0; i < XlsData.Count; i++)
+            if (checkThread != null)
             {
-                downloadUtils.IniWritevalue(XlsData[i].ComicUrl, "curDownloadPage", XlsData[i].CurDownloadPage.ToString());
+                checkThread.Abort();
             }
+
+            if (cancellationToken != null)
+            {
+                cancellationToken.Cancel();
+            }
+            // for (int i = 0; i < XlsData.Count; i++)
+            // {
+            //     downloadUtils.IniWritevalue(XlsData[i].ComicUrl, "curDownloadPage", XlsData[i].CurDownloadPage.ToString());
+            // }
         }
 
         private void ListView_OnDrop(object sender, DragEventArgs e)
