@@ -266,7 +266,7 @@ namespace DownloadImage.domain
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(imgUrl);
             request.Proxy = null;
             request.UserAgent = "Mozilla/6.0 (MSIE 6.0; Windows NT 5.1; Natas.Robot)";
-            request.Timeout = 3000;
+            request.Timeout = 10000;
             request.ServicePoint.Expect100Continue = false;
 
             WebResponse response = request.GetResponse();
@@ -274,19 +274,23 @@ namespace DownloadImage.domain
 
             if (response.ContentType.ToLower().StartsWith("image/"))
             {
-                byte[] arrayByte = new byte[1024];
+                byte[] arrayByte = new byte[4096];
                 int imgLong = (int)response.ContentLength;
                 int l = 0;
 
                 if (fileName == "")
                     fileName = imgName;
-
+                TimeSpan ts = new TimeSpan();
                 FileStream fso = new FileStream(path + fileName, FileMode.Create);
                 while (l < imgLong)
                 {
-                    int i = stream.Read(arrayByte, 0, 1024);
+                    int i = stream.Read(arrayByte, 0, arrayByte.Length);
                     fso.Write(arrayByte, 0, i);
                     l += i;
+                    if ((l / ts.TotalSeconds) > 1024)
+                    {
+                        System.Threading.Thread.Sleep(1);  // 休息一下.
+                    }
                 }
 
                 fso.Close();
@@ -298,6 +302,9 @@ namespace DownloadImage.domain
             }
             else
             {
+                stream.Close();
+                response.Close();
+                request.Abort();
                 GC.Collect();
                 return "";
             }

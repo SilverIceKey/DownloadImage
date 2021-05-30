@@ -129,6 +129,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Constants.cs" />
     <Compile Include="domain\BookDownload.xaml.cs">
       <DependentUpon>BookDownload.xaml</DependentUpon>
     </Compile>

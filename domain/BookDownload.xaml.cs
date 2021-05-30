@@ -91,7 +91,7 @@ namespace DownloadImage.domain
         {
             string title = "";
             string html = HttpRequestHelper.HttpGet(url, "");
-            if (url.StartsWith("https://zh.nyahentai.fun/"))
+            if (url.StartsWith(Constants.ENMiaoHentai) || url.StartsWith(Constants.CNMiaoHentai))
             {
                 HtmlDocument document = new HtmlDocument();
                 document.LoadHtml(html);
@@ -141,7 +141,7 @@ namespace DownloadImage.domain
         private int getComicPage(string url, HtmlDocument document)
         {
             int comicPage = 0;
-            if (url.StartsWith("https://zh.nyahentai.fun/"))
+            if (url.StartsWith(Constants.ENMiaoHentai) || url.StartsWith(Constants.CNMiaoHentai))
             {
                 HtmlNode htmlNode = document.DocumentNode.SelectSingleNode("//span[@class='num-pages']");
                 comicPage = Int32.Parse(htmlNode.InnerText);
@@ -158,7 +158,7 @@ namespace DownloadImage.domain
         private List<string> getComicPageUrl(string url, HtmlDocument document)
         {
             List<string> comicPageUrl = new List<string>();
-            if (url.StartsWith("https://zh.nyahentai.fun/"))
+            if (url.StartsWith(Constants.ENMiaoHentai) || url.StartsWith(Constants.CNMiaoHentai))
             {
                 HtmlNode htmlNode = document.DocumentNode.SelectSingleNode("//span[@class='num-pages']");
                 HtmlNode imgSrcNode =
@@ -208,10 +208,14 @@ namespace DownloadImage.domain
                         Int64 startTime = TimeUtils.GetTimeStamp();
                         ComicModel comicModel = new ComicModel();
                         string ComicUrl = paths[i];
+                        if (ComicUrl.Contains(Constants.ENMiaoHentai))
+                        {
+                            ComicUrl = ComicUrl.Replace(Constants.ENMiaoHentai, Constants.CNMiaoHentai);
+                        }
                         HtmlDocument document = new HtmlDocument();
                         LogOutWrite("漫画信息", "链接：" + ComicUrl + " 解析开始");
                         string html = HttpRequestHelper.HttpGet(ComicUrl, "");
-                        if (ComicUrl.StartsWith("https://zh.nyahentai.fun/"))
+                        if (ComicUrl.StartsWith(Constants.ENMiaoHentai) || ComicUrl.StartsWith(Constants.CNMiaoHentai))
                         {
                             html = HttpRequestHelper.HttpGet(ComicUrl + "list/1/", "");
                         }
@@ -247,7 +251,7 @@ namespace DownloadImage.domain
                                 string ComicUrl = firstRow.Cells[j].ToString();
                                 HtmlDocument document = new HtmlDocument();
                                 LogOutWrite("漫画信息", "链接：" + ComicUrl + " 解析开始");
-                                if (ComicUrl.StartsWith("https://zh.nyahentai.fun/"))
+                                if (ComicUrl.StartsWith(Constants.ENMiaoHentai) || ComicUrl.StartsWith(Constants.CNMiaoHentai))
                                 {
                                     ComicUrl = ComicUrl + "list/1/";
                                 }
@@ -439,6 +443,7 @@ namespace DownloadImage.domain
                 }
                 catch (Exception e)
                 {
+                    ThreadDownload(token, comicModel);
                     //LogOutWrite("漫画信息", "链接：" + downloadModel.ComicPageUrl[downloadModel.CurDownloadPage] + " 漫画名称：" + downloadModel.ComicName + " 错误信息：" + e.Message);
                     Console.WriteLine(e.Message);
                 }
